@@ -1,0 +1,39 @@
+name: Java CI with JUnit
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+
+    - name: Build and Test
+      run: mvn test
+      
+    - name: Notify on Test Failure
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const issue = await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '❌ Test Failure in CI Pipeline',
+            body: 'Tests failed in DateTime Formatter implementation'
+          });
+
+    - name: Notify on Success
+      if: success()
+      run: echo "Tests passed successfully!"
